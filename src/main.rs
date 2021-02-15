@@ -56,15 +56,7 @@ fn main() -> Result<(), Error> {
                 let glyph_pixel_buf = PixelBuf::from(glyph);
 
                 let mut screen_pixel_buf = PixelBuf {
-                    pixels: vec![
-                        Pixel {
-                            r: 0,
-                            g: 0,
-                            b: 0,
-                            a: 0,
-                        };
-                        (WIDTH * HEIGHT) as usize
-                    ],
+                    pixels: vec![Pixel::default(); (WIDTH * HEIGHT) as usize],
                     width: WIDTH as usize,
                 };
 
@@ -173,7 +165,7 @@ impl From<RasterizedGlyph> for PixelBuf {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 struct Pixel {
     r: u8,
     g: u8,
