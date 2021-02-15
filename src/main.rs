@@ -1,4 +1,6 @@
-use crossfont::{BitmapBuffer, FontDesc, GlyphKey, Rasterize, Rasterizer, Size, Style};
+use crossfont::{
+    BitmapBuffer, FontDesc, GlyphKey, Rasterize, RasterizedGlyph, Rasterizer, Size, Style,
+};
 use pixels::{Error, Pixels, SurfaceTexture};
 use std::iter;
 use winit::dpi::PhysicalSize;
@@ -51,33 +53,7 @@ fn main() -> Result<(), Error> {
                     })
                     .unwrap();
 
-                let glyph_pixel_buf = match glyph.buffer {
-                    BitmapBuffer::RGB(rgb) => PixelBuf {
-                        pixels: rgb
-                            .chunks(3)
-                            .map(|pixel| Pixel {
-                                r: pixel[0],
-                                g: pixel[1],
-                                b: pixel[2],
-                                a: 255,
-                            })
-                            .collect(),
-                        width: glyph.width as usize,
-                    },
-
-                    BitmapBuffer::RGBA(rgba) => PixelBuf {
-                        pixels: rgba
-                            .chunks(4)
-                            .map(|pixel| Pixel {
-                                r: pixel[0],
-                                g: pixel[1],
-                                b: pixel[2],
-                                a: pixel[3],
-                            })
-                            .collect(),
-                        width: glyph.width as usize,
-                    },
-                };
+                let glyph_pixel_buf = PixelBuf::from(glyph);
 
                 let mut screen_pixel_buf = PixelBuf {
                     pixels: vec![
@@ -157,6 +133,38 @@ impl PixelBuf {
                 },
             )
         })
+    }
+}
+
+impl From<RasterizedGlyph> for PixelBuf {
+    fn from(glyph: RasterizedGlyph) -> Self {
+        match glyph.buffer {
+            BitmapBuffer::RGB(rgb) => PixelBuf {
+                pixels: rgb
+                    .chunks(3)
+                    .map(|pixel| Pixel {
+                        r: pixel[0],
+                        g: pixel[1],
+                        b: pixel[2],
+                        a: 255,
+                    })
+                    .collect(),
+                width: glyph.width as usize,
+            },
+
+            BitmapBuffer::RGBA(rgba) => PixelBuf {
+                pixels: rgba
+                    .chunks(4)
+                    .map(|pixel| Pixel {
+                        r: pixel[0],
+                        g: pixel[1],
+                        b: pixel[2],
+                        a: pixel[3],
+                    })
+                    .collect(),
+                width: glyph.width as usize,
+            },
+        }
     }
 }
 
