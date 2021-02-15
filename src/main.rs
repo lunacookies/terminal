@@ -93,7 +93,13 @@ fn main() -> Result<(), Error> {
                 };
 
                 for (pixel, coordinate) in glyph_pixel_buf.pixels() {
-                    screen_pixel_buf.set_pixel(coordinate, *pixel);
+                    screen_pixel_buf.set_pixel(
+                        Coordinate {
+                            x: coordinate.x + 100,
+                            y: coordinate.y + 100,
+                        },
+                        *pixel,
+                    );
                 }
 
                 for (pixel_mut_ref, pixel_value) in pixels
