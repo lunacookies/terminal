@@ -135,6 +135,8 @@ impl PixelBuf {
 
 impl From<RasterizedGlyph> for PixelBuf {
     fn from(glyph: RasterizedGlyph) -> Self {
+        let width = glyph.width as usize;
+
         match glyph.buffer {
             BitmapBuffer::RGB(rgb) => PixelBuf {
                 pixels: rgb
@@ -146,7 +148,7 @@ impl From<RasterizedGlyph> for PixelBuf {
                         a: 255,
                     })
                     .collect(),
-                width: glyph.width as usize,
+                width,
             },
 
             BitmapBuffer::RGBA(rgba) => PixelBuf {
@@ -159,7 +161,7 @@ impl From<RasterizedGlyph> for PixelBuf {
                         a: pixel[3],
                     })
                     .collect(),
-                width: glyph.width as usize,
+                width,
             },
         }
     }
