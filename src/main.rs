@@ -74,7 +74,7 @@ fn main() -> Result<(), Error> {
                             x: coordinate.x + 100,
                             y: coordinate.y + 100,
                         },
-                        *pixel,
+                        pixel,
                     );
                 }
 
@@ -123,16 +123,21 @@ impl PixelBuf {
         self.pixels.into_iter().flat_map(Pixel::iter)
     }
 
-    fn pixels(&self) -> impl Iterator<Item = (&Pixel, Coordinate)> {
-        self.pixels.iter().enumerate().map(move |(idx, pixel)| {
-            (
-                pixel,
-                Coordinate {
-                    x: idx % self.width,
-                    y: idx / self.width,
-                },
-            )
-        })
+    fn pixels(self) -> impl Iterator<Item = (Pixel, Coordinate)> {
+        let width = self.width;
+
+        self.pixels
+            .into_iter()
+            .enumerate()
+            .map(move |(idx, pixel)| {
+                (
+                    pixel,
+                    Coordinate {
+                        x: idx % width,
+                        y: idx / width,
+                    },
+                )
+            })
     }
 }
 
@@ -168,7 +173,7 @@ impl From<RasterizedGlyph> for PixelBuf {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 struct Pixel {
     r: u8,
     g: u8,
