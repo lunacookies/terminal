@@ -111,14 +111,16 @@ fn render_character(
         })
         .unwrap();
 
+    let left = glyph.left as usize;
+    let top = glyph.top as usize;
 
     let glyph_pixel_buf = PixelBuf::from(glyph);
 
     for (pixel, coordinate) in glyph_pixel_buf.pixels() {
         screen_pixel_buf.set_pixel(
             Coordinate {
-                x: coordinate.x + character_pos.x,
-                y: coordinate.y + character_pos.y,
+                x: coordinate.x + character_pos.x + left,
+                y: coordinate.y + character_pos.y - top,
             },
             pixel,
         );
