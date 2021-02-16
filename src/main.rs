@@ -81,6 +81,7 @@ fn main() -> Result<(), Error> {
                 println!("end redraw {}", frame_n);
             }
             Event::WindowEvent { event, .. } => match event {
+                WindowEvent::MouseInput { .. } => window.request_redraw(),
                 WindowEvent::KeyboardInput {
                     input:
                         KeyboardInput {
