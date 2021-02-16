@@ -3,8 +3,8 @@ use crossfont::{
 };
 use pixels::{Error, Pixels, SurfaceTexture};
 use std::iter;
-use winit::dpi::PhysicalSize;
-use winit::event::{Event, KeyboardInput, VirtualKeyCode, WindowEvent};
+use winit::dpi::{PhysicalPosition, PhysicalSize};
+use winit::event::{Event, KeyboardInput, MouseScrollDelta, VirtualKeyCode, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 
 const WIDTH: u32 = 2000;
@@ -41,6 +41,7 @@ fn main() -> Result<(), Error> {
         .unwrap();
 
     let width_of_space = calc_with_of_space(&mut rasterizer, font_key);
+    let mut y = 100;
 
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Wait;
@@ -66,7 +67,7 @@ fn main() -> Result<(), Error> {
                             &mut rasterizer,
                             font_key,
                             &mut screen_pixel_buf,
-                            Coordinate { x: 100, y: 100 },
+                            Coordinate { x: 100, y },
                             &mut x,
                         );
                     }
@@ -88,6 +89,17 @@ fn main() -> Result<(), Error> {
             }
             Event::WindowEvent { event, .. } => match event {
                 WindowEvent::MouseInput { .. } => window.request_redraw(),
+                WindowEvent::MouseWheel {
+                    delta: MouseScrollDelta::PixelDelta(PhysicalPosition { y: y_change, .. }),
+                    ..
+                } => {
+                    if y_change > 0.0 {
+                        y += y_change as usize;
+                    } else {
+                        y -= -y_change as usize;
+                    }
+                    window.request_redraw();
+                }
                 WindowEvent::KeyboardInput {
                     input:
                         KeyboardInput {
