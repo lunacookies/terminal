@@ -45,30 +45,25 @@ fn main() -> Result<(), Error> {
                 frame_n += 1;
                 println!("redraw {}", frame_n);
 
-                let glyph = rasterizer
-                    .get_glyph(GlyphKey {
-                        character: 'g',
-                        font_key,
-                        size: Size::new(13.0),
-                    })
-                    .unwrap();
-
-                let glyph_pixel_buf = PixelBuf::from(glyph);
-
                 let mut screen_pixel_buf = PixelBuf {
                     pixels: vec![Pixel::default(); (WIDTH * HEIGHT) as usize],
                     width: WIDTH as usize,
                 };
 
-                for (pixel, coordinate) in glyph_pixel_buf.pixels() {
-                    screen_pixel_buf.set_pixel(
-                        Coordinate {
-                            x: coordinate.x + 100,
-                            y: coordinate.y + 100,
-                        },
-                        pixel,
-                    );
-                }
+                render_character(
+                    'g',
+                    &mut rasterizer,
+                    font_key,
+                    &mut screen_pixel_buf,
+                    Coordinate { x: 100, y: 100 },
+                );
+                render_character(
+                    'g',
+                    &mut rasterizer,
+                    font_key,
+                    &mut screen_pixel_buf,
+                    Coordinate { x: 120, y: 100 },
+                );
 
                 for (pixel_mut_ref, pixel_value) in pixels
                     .get_frame()
@@ -99,6 +94,35 @@ fn main() -> Result<(), Error> {
             _ => {}
         }
     });
+}
+
+fn render_character(
+    character: char,
+    rasterizer: &mut Rasterizer,
+    font_key: crossfont::FontKey,
+    screen_pixel_buf: &mut PixelBuf,
+    character_pos: Coordinate,
+) {
+    let glyph = rasterizer
+        .get_glyph(GlyphKey {
+            character,
+            font_key,
+            size: Size::new(13.0),
+        })
+        .unwrap();
+
+
+    let glyph_pixel_buf = PixelBuf::from(glyph);
+
+    for (pixel, coordinate) in glyph_pixel_buf.pixels() {
+        screen_pixel_buf.set_pixel(
+            Coordinate {
+                x: coordinate.x + character_pos.x,
+                y: coordinate.y + character_pos.y,
+            },
+            pixel,
+        );
+    }
 }
 
 struct PixelBuf {
