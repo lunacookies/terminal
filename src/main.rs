@@ -77,6 +77,8 @@ fn main() -> Result<(), Error> {
                 if pixels.render().is_err() {
                     *control_flow = ControlFlow::Exit;
                 }
+
+                println!("end redraw {}", frame_n);
             }
             Event::WindowEvent { event, .. } => match event {
                 WindowEvent::KeyboardInput {
