@@ -40,6 +40,8 @@ fn main() -> Result<(), Error> {
         )
         .unwrap();
 
+    let width_of_space = calc_with_of_space(&mut rasterizer, font_key);
+
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Wait;
 
@@ -56,14 +58,18 @@ fn main() -> Result<(), Error> {
                 let mut x = 100;
 
                 for c in TEXT.chars() {
-                    render_character(
-                        c,
-                        &mut rasterizer,
-                        font_key,
-                        &mut screen_pixel_buf,
-                        Coordinate { x: 100, y: 100 },
-                        &mut x,
-                    );
+                    if c == ' ' {
+                        x += width_of_space;
+                    } else {
+                        render_character(
+                            c,
+                            &mut rasterizer,
+                            font_key,
+                            &mut screen_pixel_buf,
+                            Coordinate { x: 100, y: 100 },
+                            &mut x,
+                        );
+                    }
                 }
 
                 for (pixel_mut_ref, pixel_value) in pixels
@@ -133,6 +139,19 @@ fn render_character(
     }
 
     *x += width + left;
+}
+
+fn calc_with_of_space(rasterizer: &mut Rasterizer, font_key: crossfont::FontKey) -> usize {
+    // The letter ‘i’ is usually the same with as a space.
+    let glyph = rasterizer
+        .get_glyph(GlyphKey {
+            character: 'i',
+            font_key,
+            size: Size::new(SIZE),
+        })
+        .unwrap();
+
+    (glyph.width + glyph.left) as usize
 }
 
 struct PixelBuf {
