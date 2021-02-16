@@ -9,6 +9,7 @@ use winit::event_loop::{ControlFlow, EventLoop};
 
 const WIDTH: u32 = 1000;
 const HEIGHT: u32 = 500;
+const SIZE: f32 = 13.0;
 const TEXT: &str =
     "the quick brown fox jumped over the lazy dog and THE QUICK BROWN FOX JUMPED OVER THE LAZY DOG";
 
@@ -35,7 +36,7 @@ fn main() -> Result<(), Error> {
     let font_key = rasterizer
         .load_font(
             &FontDesc::new("Input Sans", Style::Specific("Light".to_string())),
-            Size::new(13.0),
+            Size::new(SIZE),
         )
         .unwrap();
 
@@ -108,7 +109,7 @@ fn render_character(
         .get_glyph(GlyphKey {
             character,
             font_key,
-            size: Size::new(13.0),
+            size: Size::new(SIZE),
         })
         .unwrap();
 
