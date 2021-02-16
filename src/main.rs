@@ -7,8 +7,8 @@ use winit::dpi::PhysicalSize;
 use winit::event::{Event, KeyboardInput, VirtualKeyCode, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 
-const WIDTH: u32 = 1000;
-const HEIGHT: u32 = 500;
+const WIDTH: u32 = 2000;
+const HEIGHT: u32 = 1000;
 const SIZE: f32 = 13.0;
 const TEXT: &str =
     "the quick brown fox jumped over the lazy dog and THE QUICK BROWN FOX JUMPED OVER THE LAZY DOG";
