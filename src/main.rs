@@ -9,6 +9,8 @@ use winit::event_loop::{ControlFlow, EventLoop};
 
 const WIDTH: u32 = 1000;
 const HEIGHT: u32 = 500;
+const TEXT: &str =
+    "the quick brown fox jumped over the lazy dog and THE QUICK BROWN FOX JUMPED OVER THE LAZY DOG";
 
 fn main() -> Result<(), Error> {
     let event_loop = EventLoop::new();
@@ -50,20 +52,18 @@ fn main() -> Result<(), Error> {
                     width: WIDTH as usize,
                 };
 
-                render_character(
-                    'g',
-                    &mut rasterizer,
-                    font_key,
-                    &mut screen_pixel_buf,
-                    Coordinate { x: 100, y: 100 },
-                );
-                render_character(
-                    'g',
-                    &mut rasterizer,
-                    font_key,
-                    &mut screen_pixel_buf,
-                    Coordinate { x: 120, y: 100 },
-                );
+                let mut x = 100;
+
+                for c in TEXT.chars() {
+                    render_character(
+                        c,
+                        &mut rasterizer,
+                        font_key,
+                        &mut screen_pixel_buf,
+                        Coordinate { x: 100, y: 100 },
+                        &mut x,
+                    );
+                }
 
                 for (pixel_mut_ref, pixel_value) in pixels
                     .get_frame()
@@ -102,6 +102,7 @@ fn render_character(
     font_key: crossfont::FontKey,
     screen_pixel_buf: &mut PixelBuf,
     character_pos: Coordinate,
+    x: &mut usize,
 ) {
     let glyph = rasterizer
         .get_glyph(GlyphKey {
@@ -111,6 +112,7 @@ fn render_character(
         })
         .unwrap();
 
+    let width = glyph.width as usize;
     let left = glyph.left as usize;
     let top = glyph.top as usize;
 
@@ -119,12 +121,14 @@ fn render_character(
     for (pixel, coordinate) in glyph_pixel_buf.pixels() {
         screen_pixel_buf.set_pixel(
             Coordinate {
-                x: coordinate.x + character_pos.x + left,
+                x: *x + coordinate.x + character_pos.x + left,
                 y: coordinate.y + character_pos.y - top,
             },
             pixel,
         );
     }
+
+    *x += width + left;
 }
 
 struct PixelBuf {
