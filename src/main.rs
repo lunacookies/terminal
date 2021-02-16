@@ -139,6 +139,7 @@ struct PixelBuf {
 
 impl PixelBuf {
     fn set_pixel(&mut self, coordinate: Coordinate, new_pixel: Pixel) {
+        assert!(coordinate.x < self.width);
         self.pixels[coordinate.to_idx(self.width)] = new_pixel;
     }
 
