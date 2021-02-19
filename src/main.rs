@@ -171,7 +171,7 @@ struct PixelBuf {
 
 impl PixelBuf {
     fn set_pixel(&mut self, coordinate: Coordinate, new_pixel: Pixel) {
-        if let Some(idx) = coordinate.to_idx(self.width) {
+        if let Some(idx) = coordinate.to_idx(self.width, self.height) {
             self.pixels[idx] = new_pixel;
         }
     }
@@ -259,8 +259,8 @@ struct Coordinate {
 }
 
 impl Coordinate {
-    fn to_idx(self, width: usize) -> Option<usize> {
-        if self.y < 0 || self.x < 0 {
+    fn to_idx(self, width: usize, height: usize) -> Option<usize> {
+        if !(0..width as isize).contains(&self.x) || !(0..height as isize).contains(&self.y) {
             return None;
         }
 
