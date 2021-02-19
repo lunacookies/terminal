@@ -54,6 +54,7 @@ fn main() -> Result<(), Error> {
                 let mut screen_pixel_buf = PixelBuf {
                     pixels: vec![Pixel::default(); (WIDTH * HEIGHT) as usize],
                     width: WIDTH as usize,
+                    height: HEIGHT as usize,
                 };
 
                 let mut x = 100;
@@ -165,6 +166,7 @@ fn calc_with_of_space(rasterizer: &mut Rasterizer, font_key: crossfont::FontKey)
 struct PixelBuf {
     pixels: Vec<Pixel>,
     width: usize,
+    height: usize,
 }
 
 impl PixelBuf {
@@ -199,6 +201,7 @@ impl PixelBuf {
 impl From<RasterizedGlyph> for PixelBuf {
     fn from(glyph: RasterizedGlyph) -> Self {
         let width = glyph.width as usize;
+        let height = glyph.height as usize;
 
         match glyph.buffer {
             BitmapBuffer::RGB(rgb) => PixelBuf {
@@ -212,6 +215,7 @@ impl From<RasterizedGlyph> for PixelBuf {
                     })
                     .collect(),
                 width,
+                height,
             },
 
             BitmapBuffer::RGBA(rgba) => PixelBuf {
@@ -225,6 +229,7 @@ impl From<RasterizedGlyph> for PixelBuf {
                     })
                     .collect(),
                 width,
+                height,
             },
         }
     }
