@@ -1,5 +1,5 @@
 use crossfont::{
-    BitmapBuffer, FontDesc, GlyphKey, Rasterize, RasterizedGlyph, Rasterizer, Size, Style,
+    BitmapBuffer, FontDesc, FontKey, GlyphKey, Rasterize, RasterizedGlyph, Rasterizer, Size, Style,
 };
 use pixels::{Error, Pixels, SurfaceTexture};
 use std::iter;
@@ -48,45 +48,15 @@ fn main() -> Result<(), Error> {
 
         match event {
             Event::RedrawRequested(_) => {
-                frame_n += 1;
-                println!("redraw {}", frame_n);
-
-                let mut screen_pixel_buf = PixelBuf {
-                    pixels: vec![Pixel::default(); (WIDTH * HEIGHT) as usize],
-                    width: WIDTH as usize,
-                    height: HEIGHT as usize,
-                };
-
-                let mut x = 100;
-
-                for c in TEXT.chars() {
-                    if c == ' ' {
-                        x += width_of_space as isize;
-                    } else {
-                        render_character(
-                            c,
-                            &mut rasterizer,
-                            font_key,
-                            &mut screen_pixel_buf,
-                            Coordinate { x: 100, y },
-                            &mut x,
-                        );
-                    }
-                }
-
-                for (pixel_mut_ref, pixel_value) in pixels
-                    .get_frame()
-                    .iter_mut()
-                    .zip(screen_pixel_buf.subpixels())
-                {
-                    *pixel_mut_ref = pixel_value;
-                }
-
-                if pixels.render().is_err() {
-                    *control_flow = ControlFlow::Exit;
-                }
-
-                println!("end redraw {}", frame_n);
+                redraw(
+                    &mut frame_n,
+                    width_of_space,
+                    &mut rasterizer,
+                    font_key,
+                    &mut y,
+                    &mut pixels,
+                    control_flow,
+                );
             }
             Event::WindowEvent { event, .. } => match event {
                 WindowEvent::MouseInput { .. } => window.request_redraw(),
@@ -113,6 +83,56 @@ fn main() -> Result<(), Error> {
             _ => {}
         }
     });
+}
+
+fn redraw(
+    frame_n: &mut i32,
+    width_of_space: usize,
+    rasterizer: &mut Rasterizer,
+    font_key: FontKey,
+    y: &mut isize,
+    pixels: &mut Pixels<winit::window::Window>,
+    control_flow: &mut ControlFlow,
+) {
+    *frame_n += 1;
+    println!("redraw {}", frame_n);
+
+    let mut screen_pixel_buf = PixelBuf {
+        pixels: vec![Pixel::default(); (WIDTH * HEIGHT) as usize],
+        width: WIDTH as usize,
+        height: HEIGHT as usize,
+    };
+
+    let mut x = 100;
+
+    for c in TEXT.chars() {
+        if c == ' ' {
+            x += width_of_space as isize;
+        } else {
+            render_character(
+                c,
+                rasterizer,
+                font_key,
+                &mut screen_pixel_buf,
+                Coordinate { x: 100, y: *y },
+                &mut x,
+            );
+        }
+    }
+
+    for (pixel_mut_ref, pixel_value) in pixels
+        .get_frame()
+        .iter_mut()
+        .zip(screen_pixel_buf.subpixels())
+    {
+        *pixel_mut_ref = pixel_value;
+    }
+
+    if pixels.render().is_err() {
+        *control_flow = ControlFlow::Exit;
+    }
+
+    println!("end redraw {}", frame_n);
 }
 
 fn render_character(
