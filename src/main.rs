@@ -2,7 +2,6 @@ use crossfont::{
     BitmapBuffer, FontDesc, FontKey, GlyphKey, Rasterize, RasterizedGlyph, Rasterizer, Size, Style,
 };
 use pixels::{Error, Pixels, SurfaceTexture};
-use std::iter;
 use winit::dpi::{PhysicalPosition, PhysicalSize};
 use winit::event::{Event, KeyboardInput, MouseScrollDelta, VirtualKeyCode, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
@@ -108,23 +107,13 @@ fn redraw(
         y,
     );
 
-    push_screen_pixel_buf(pixels, screen_pixel_buf);
+    screen_pixel_buf.write_to_rgba_buffer(&mut pixels.get_frame());
 
     if pixels.render().is_err() {
         *control_flow = ControlFlow::Exit;
     }
 
     println!("end redraw {}", frame_n);
-}
-
-fn push_screen_pixel_buf(pixels: &mut Pixels<winit::window::Window>, screen_pixel_buf: PixelBuf) {
-    for (pixel_mut_ref, pixel_value) in pixels
-        .get_frame()
-        .iter_mut()
-        .zip(screen_pixel_buf.subpixels())
-    {
-        *pixel_mut_ref = pixel_value;
-    }
 }
 
 fn render_text(
@@ -222,8 +211,17 @@ impl PixelBuf {
         }
     }
 
-    fn subpixels(self) -> impl Iterator<Item = u8> {
-        self.pixels.into_iter().flat_map(Pixel::iter)
+    fn write_to_rgba_buffer(self, rgba: &mut [u8]) {
+        let mut idx = 0;
+
+        for Pixel { r, g, b, a } in self.pixels {
+            rgba[idx] = r;
+            rgba[idx + 1] = g;
+            rgba[idx + 2] = b;
+            rgba[idx + 3] = a;
+
+            idx += 4;
+        }
     }
 
     fn pixels(self) -> impl Iterator<Item = (Pixel, Coordinate)> {
@@ -287,15 +285,6 @@ struct Pixel {
     g: u8,
     b: u8,
     a: u8,
-}
-
-impl Pixel {
-    fn iter(self) -> impl Iterator<Item = u8> {
-        iter::once(self.r)
-            .chain(iter::once(self.g))
-            .chain(iter::once(self.b))
-            .chain(iter::once(self.a))
-    }
 }
 
 #[derive(Clone, Copy)]
