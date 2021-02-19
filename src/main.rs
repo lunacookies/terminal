@@ -60,7 +60,7 @@ fn main() -> Result<(), Error> {
 
                 for c in TEXT.chars() {
                     if c == ' ' {
-                        x += width_of_space;
+                        x += width_of_space as isize;
                     } else {
                         render_character(
                             c,
@@ -93,11 +93,7 @@ fn main() -> Result<(), Error> {
                     delta: MouseScrollDelta::PixelDelta(PhysicalPosition { y: y_change, .. }),
                     ..
                 } => {
-                    if y_change > 0.0 {
-                        y += y_change as usize;
-                    } else {
-                        y -= -y_change as usize;
-                    }
+                    y += y_change as isize;
                     window.request_redraw();
                 }
                 WindowEvent::KeyboardInput {
@@ -124,7 +120,7 @@ fn render_character(
     font_key: crossfont::FontKey,
     screen_pixel_buf: &mut PixelBuf,
     character_pos: Coordinate,
-    x: &mut usize,
+    x: &mut isize,
 ) {
     let glyph = rasterizer
         .get_glyph(GlyphKey {
@@ -134,9 +130,9 @@ fn render_character(
         })
         .unwrap();
 
-    let width = glyph.width as usize;
-    let left = glyph.left as usize;
-    let top = glyph.top as usize;
+    let width = glyph.width as isize;
+    let left = glyph.left as isize;
+    let top = glyph.top as isize;
 
     let glyph_pixel_buf = PixelBuf::from(glyph);
 
@@ -150,7 +146,7 @@ fn render_character(
         );
     }
 
-    *x += width + left;
+    *x += (width + left) as isize;
 }
 
 fn calc_with_of_space(rasterizer: &mut Rasterizer, font_key: crossfont::FontKey) -> usize {
@@ -173,8 +169,9 @@ struct PixelBuf {
 
 impl PixelBuf {
     fn set_pixel(&mut self, coordinate: Coordinate, new_pixel: Pixel) {
-        assert!(coordinate.x < self.width);
-        self.pixels[coordinate.to_idx(self.width)] = new_pixel;
+        if let Some(idx) = coordinate.to_idx(self.width) {
+            self.pixels[idx] = new_pixel;
+        }
     }
 
     fn subpixels(self) -> impl Iterator<Item = u8> {
@@ -191,8 +188,8 @@ impl PixelBuf {
                 (
                     pixel,
                     Coordinate {
-                        x: idx % width,
-                        y: idx / width,
+                        x: (idx % width) as isize,
+                        y: (idx / width) as isize,
                     },
                 )
             })
@@ -252,12 +249,16 @@ impl Pixel {
 
 #[derive(Clone, Copy)]
 struct Coordinate {
-    x: usize,
-    y: usize,
+    x: isize,
+    y: isize,
 }
 
 impl Coordinate {
-    fn to_idx(self, width: usize) -> usize {
-        self.y * width + self.x
+    fn to_idx(self, width: usize) -> Option<usize> {
+        if self.y < 0 || self.x < 0 {
+            return None;
+        }
+
+        Some(self.y as usize * width + self.x as usize)
     }
 }
