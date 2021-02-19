@@ -97,29 +97,27 @@ fn redraw(
     *frame_n += 1;
     println!("redraw {}", frame_n);
 
-    let mut screen_pixel_buf = PixelBuf {
-        pixels: vec![Pixel::default(); (WIDTH * HEIGHT) as usize],
-        width: WIDTH as usize,
-        height: HEIGHT as usize,
-    };
+    let mut screen_pixel_buf = gen_screen_pixel_buf();
 
-    let mut x = 100;
+    render_text(
+        TEXT,
+        width_of_space,
+        rasterizer,
+        font_key,
+        &mut screen_pixel_buf,
+        y,
+    );
 
-    for c in TEXT.chars() {
-        if c == ' ' {
-            x += width_of_space as isize;
-        } else {
-            render_character(
-                c,
-                rasterizer,
-                font_key,
-                &mut screen_pixel_buf,
-                Coordinate { x: 100, y: *y },
-                &mut x,
-            );
-        }
+    push_screen_pixel_buf(pixels, screen_pixel_buf);
+
+    if pixels.render().is_err() {
+        *control_flow = ControlFlow::Exit;
     }
 
+    println!("end redraw {}", frame_n);
+}
+
+fn push_screen_pixel_buf(pixels: &mut Pixels<winit::window::Window>, screen_pixel_buf: PixelBuf) {
     for (pixel_mut_ref, pixel_value) in pixels
         .get_frame()
         .iter_mut()
@@ -127,12 +125,40 @@ fn redraw(
     {
         *pixel_mut_ref = pixel_value;
     }
+}
 
-    if pixels.render().is_err() {
-        *control_flow = ControlFlow::Exit;
+fn render_text(
+    text: &str,
+    width_of_space: usize,
+    rasterizer: &mut Rasterizer,
+    font_key: FontKey,
+    screen_pixel_buf: &mut PixelBuf,
+    y: &mut isize,
+) {
+    let mut x = 100;
+
+    for c in text.chars() {
+        if c == ' ' {
+            x += width_of_space as isize;
+        } else {
+            render_character(
+                c,
+                rasterizer,
+                font_key,
+                screen_pixel_buf,
+                Coordinate { x: 100, y: *y },
+                &mut x,
+            );
+        }
     }
+}
 
-    println!("end redraw {}", frame_n);
+fn gen_screen_pixel_buf() -> PixelBuf {
+    PixelBuf {
+        pixels: vec![Pixel::default(); (WIDTH * HEIGHT) as usize],
+        width: WIDTH as usize,
+        height: HEIGHT as usize,
+    }
 }
 
 fn render_character(
