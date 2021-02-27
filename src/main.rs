@@ -11,6 +11,16 @@ const HEIGHT: u32 = 1000;
 const SIZE: f32 = 13.0;
 const TEXT: &str =
     "the quick brown fox jumped over the lazy dog and THE QUICK BROWN FOX JUMPED OVER THE LAZY DOG";
+const BG_COLOR: Rgb = Rgb {
+    r: 28,
+    g: 30,
+    b: 41,
+};
+const TEXT_COLOR: Rgb = Rgb {
+    r: 195,
+    g: 197,
+    b: 204,
+};
 
 fn main() -> Result<(), Error> {
     let event_loop = EventLoop::new();
@@ -139,7 +149,7 @@ fn render_text(
 
 fn gen_screen_pixel_buf() -> PixelBuf<Rgb> {
     PixelBuf {
-        pixels: vec![Rgb::default(); (WIDTH * HEIGHT) as usize],
+        pixels: vec![BG_COLOR; (WIDTH * HEIGHT) as usize],
         width: WIDTH as usize,
         height: HEIGHT as usize,
     }
@@ -173,9 +183,9 @@ fn render_character(
                 y: pixel_pos.y + character_pos.y - top,
             },
             Rgba {
-                r: 255,
-                g: 255,
-                b: 255,
+                r: TEXT_COLOR.r,
+                g: TEXT_COLOR.g,
+                b: TEXT_COLOR.b,
                 a: pixel.0,
             },
         );
