@@ -121,7 +121,7 @@ fn render_text(
     width_of_space: usize,
     rasterizer: &mut Rasterizer,
     font_key: FontKey,
-    screen_pixel_buf: &mut PixelBuf,
+    screen_pixel_buf: &mut PixelBuf<Rgb>,
     y: &mut isize,
 ) {
     let mut x = 100;
@@ -142,9 +142,9 @@ fn render_text(
     }
 }
 
-fn gen_screen_pixel_buf() -> PixelBuf {
+fn gen_screen_pixel_buf() -> PixelBuf<Rgb> {
     PixelBuf {
-        pixels: vec![Pixel::default(); (WIDTH * HEIGHT) as usize],
+        pixels: vec![Rgb::default(); (WIDTH * HEIGHT) as usize],
         width: WIDTH as usize,
         height: HEIGHT as usize,
     }
@@ -154,7 +154,7 @@ fn render_character(
     character: char,
     rasterizer: &mut Rasterizer,
     font_key: crossfont::FontKey,
-    screen_pixel_buf: &mut PixelBuf,
+    screen_pixel_buf: &mut PixelBuf<Rgb>,
     character_pos: Coordinate,
     x: &mut isize,
 ) {
@@ -178,7 +178,12 @@ fn render_character(
                 x: *x + coordinate.x + character_pos.x + left,
                 y: coordinate.y + character_pos.y - top,
             },
-            pixel,
+            Rgba {
+                r: 255,
+                g: 255,
+                b: 255,
+                a: pixel.0,
+            },
         );
     }
 
@@ -198,33 +203,14 @@ fn calc_with_of_space(rasterizer: &mut Rasterizer, font_key: crossfont::FontKey)
     (glyph.width + glyph.left) as usize
 }
 
-struct PixelBuf {
-    pixels: Vec<Pixel>,
+struct PixelBuf<P> {
+    pixels: Vec<P>,
     width: usize,
     height: usize,
 }
 
-impl PixelBuf {
-    fn set_pixel(&mut self, coordinate: Coordinate, new_pixel: Pixel) {
-        if let Some(idx) = coordinate.to_idx(self.width, self.height) {
-            self.pixels[idx] = self.pixels[idx].clone().blend(new_pixel);
-        }
-    }
-
-    fn write_to_rgba_buffer(self, rgba: &mut [u8]) {
-        let mut idx = 0;
-
-        for Pixel { r, g, b, a } in self.pixels {
-            rgba[idx] = r;
-            rgba[idx + 1] = g;
-            rgba[idx + 2] = b;
-            rgba[idx + 3] = a;
-
-            idx += 4;
-        }
-    }
-
-    fn pixels(self) -> impl Iterator<Item = (Pixel, Coordinate)> {
+impl<P> PixelBuf<P> {
+    fn pixels(self) -> impl Iterator<Item = (P, Coordinate)> {
         let width = self.width;
 
         self.pixels
@@ -242,53 +228,54 @@ impl PixelBuf {
     }
 }
 
-impl From<RasterizedGlyph> for PixelBuf {
-    fn from(glyph: RasterizedGlyph) -> Self {
-        let width = glyph.width as usize;
-        let height = glyph.height as usize;
+impl PixelBuf<Rgb> {
+    fn set_pixel(&mut self, coordinate: Coordinate, new_pixel: Rgba) {
+        if let Some(idx) = coordinate.to_idx(self.width, self.height) {
+            self.pixels[idx] = self.pixels[idx].clone().blend(new_pixel);
+        }
+    }
 
-        match glyph.buffer {
-            BitmapBuffer::RGB(rgb) => PixelBuf {
-                pixels: rgb
-                    .chunks(3)
-                    .map(|pixel| Pixel {
-                        r: 255,
-                        g: 255,
-                        b: 255,
-                        a: pixel[0],
-                    })
-                    .collect(),
-                width,
-                height,
-            },
+    fn write_to_rgba_buffer(self, rgba: &mut [u8]) {
+        let mut idx = 0;
 
-            BitmapBuffer::RGBA(rgba) => PixelBuf {
-                pixels: rgba
-                    .chunks(4)
-                    .map(|pixel| Pixel {
-                        r: pixel[0],
-                        g: pixel[1],
-                        b: pixel[2],
-                        a: pixel[3],
-                    })
-                    .collect(),
-                width,
-                height,
-            },
+        for Rgb { r, g, b } in self.pixels {
+            rgba[idx] = r;
+            rgba[idx + 1] = g;
+            rgba[idx + 2] = b;
+            rgba[idx + 3] = 255;
+
+            idx += 4;
         }
     }
 }
 
-#[derive(Debug, Clone, Default)]
-struct Pixel {
+impl From<RasterizedGlyph> for PixelBuf<Luma> {
+    fn from(glyph: RasterizedGlyph) -> Self {
+        let width = glyph.width as usize;
+        let height = glyph.height as usize;
+
+        let lumas = match glyph.buffer {
+            BitmapBuffer::RGB(rgb) => rgb.into_iter().step_by(3),
+            BitmapBuffer::RGBA(rgba) => rgba.into_iter().step_by(4),
+        };
+
+        PixelBuf {
+            pixels: lumas.map(Luma).collect(),
+            width,
+            height,
+        }
+    }
+}
+
+#[derive(Clone, Default)]
+struct Rgb {
     r: u8,
     g: u8,
     b: u8,
-    a: u8,
 }
 
-impl Pixel {
-    fn blend(self, other: Self) -> Self {
+impl Rgb {
+    fn blend(self, other: Rgba) -> Self {
         let bottom = ultraviolet::Vec3 {
             x: self.r as f32,
             y: self.g as f32,
@@ -308,10 +295,18 @@ impl Pixel {
             r: blended.x.round() as u8,
             g: blended.y.round() as u8,
             b: blended.z.round() as u8,
-            a: 255,
         }
     }
 }
+
+struct Rgba {
+    r: u8,
+    g: u8,
+    b: u8,
+    a: u8,
+}
+
+struct Luma(u8);
 
 #[derive(Clone, Copy)]
 struct Coordinate {
