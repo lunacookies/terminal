@@ -176,18 +176,13 @@ fn render_character(
 
     let glyph_pixel_buf = PixelBuf::from(glyph);
 
-    for (pixel, pixel_pos) in glyph_pixel_buf.pixels() {
+    for (luma, pixel_pos) in glyph_pixel_buf.pixels() {
         screen_pixel_buf.set_pixel(
             Coordinate {
                 x: pixel_pos.x + character_pos.x + left,
                 y: pixel_pos.y + character_pos.y - top,
             },
-            Rgba {
-                r: TEXT_COLOR.r,
-                g: TEXT_COLOR.g,
-                b: TEXT_COLOR.b,
-                a: pixel.0,
-            },
+            TEXT_COLOR.with_alpha(luma.0),
         );
     }
 
@@ -299,6 +294,15 @@ impl Rgb {
             r: blended.x.round() as u8,
             g: blended.y.round() as u8,
             b: blended.z.round() as u8,
+        }
+    }
+
+    fn with_alpha(self, a: u8) -> Rgba {
+        Rgba {
+            r: self.r,
+            g: self.g,
+            b: self.b,
+            a,
         }
     }
 }
