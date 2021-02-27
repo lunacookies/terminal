@@ -266,7 +266,7 @@ impl From<RasterizedGlyph> for PixelBuf<Luma> {
     }
 }
 
-#[derive(Clone, Default)]
+#[derive(Clone)]
 struct Rgb {
     r: u8,
     g: u8,
