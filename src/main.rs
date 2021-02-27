@@ -46,19 +46,19 @@ fn main() -> Result<(), Error> {
         *control_flow = ControlFlow::Wait;
 
         match event {
-            Event::RedrawRequested(_) => {
-                redraw(
-                    &mut frame_n,
-                    width_of_space,
-                    &mut rasterizer,
-                    font_key,
-                    &mut pixels,
-                    pos,
-                    control_flow,
-                );
-            }
+            Event::RedrawRequested(_) => redraw(
+                &mut frame_n,
+                width_of_space,
+                &mut rasterizer,
+                font_key,
+                &mut pixels,
+                pos,
+                control_flow,
+            ),
+
             Event::WindowEvent { event, .. } => match event {
                 WindowEvent::MouseInput { .. } => window.request_redraw(),
+
                 WindowEvent::MouseWheel {
                     delta:
                         MouseScrollDelta::PixelDelta(PhysicalPosition {
@@ -71,6 +71,7 @@ fn main() -> Result<(), Error> {
                     pos.y += y_change as isize;
                     window.request_redraw();
                 }
+
                 WindowEvent::KeyboardInput {
                     input:
                         KeyboardInput {
@@ -79,9 +80,8 @@ fn main() -> Result<(), Error> {
                         },
                     ..
                 }
-                | WindowEvent::CloseRequested => {
-                    *control_flow = ControlFlow::Exit;
-                }
+                | WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
+
                 _ => {}
             },
             _ => {}
