@@ -130,10 +130,9 @@ fn render_text(
     mut pos: Coordinate,
 ) {
     for c in text.chars() {
-        if c == ' ' {
-            pos.x += width_of_space as isize;
-        } else {
-            pos.x += render_character(c, rasterizer, font_key, screen_pixel_buf, pos);
+        match c {
+            ' ' => pos.x += width_of_space as isize,
+            _ => pos.x += render_character(c, rasterizer, font_key, screen_pixel_buf, pos),
         }
     }
 }
