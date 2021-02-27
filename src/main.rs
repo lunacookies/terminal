@@ -207,7 +207,7 @@ struct PixelBuf {
 impl PixelBuf {
     fn set_pixel(&mut self, coordinate: Coordinate, new_pixel: Pixel) {
         if let Some(idx) = coordinate.to_idx(self.width, self.height) {
-            self.pixels[idx] = new_pixel;
+            self.pixels[idx] = self.pixels[idx].clone().blend(new_pixel);
         }
     }
 
@@ -252,10 +252,10 @@ impl From<RasterizedGlyph> for PixelBuf {
                 pixels: rgb
                     .chunks(3)
                     .map(|pixel| Pixel {
-                        r: pixel[0],
-                        g: pixel[1],
-                        b: pixel[2],
-                        a: 255,
+                        r: 255,
+                        g: 255,
+                        b: 255,
+                        a: pixel[0],
                     })
                     .collect(),
                 width,
@@ -285,6 +285,32 @@ struct Pixel {
     g: u8,
     b: u8,
     a: u8,
+}
+
+impl Pixel {
+    fn blend(self, other: Self) -> Self {
+        let bottom = ultraviolet::Vec3 {
+            x: self.r as f32,
+            y: self.g as f32,
+            z: self.b as f32,
+        };
+
+        let top = ultraviolet::Vec3 {
+            x: other.r as f32,
+            y: other.g as f32,
+            z: other.b as f32,
+        };
+
+        let alpha = other.a as f32 / 255.0;
+        let blended = bottom * (1.0 - alpha) + top * alpha;
+
+        Self {
+            r: blended.x.round() as u8,
+            g: blended.y.round() as u8,
+            b: blended.z.round() as u8,
+            a: 255,
+        }
+    }
 }
 
 #[derive(Clone, Copy)]

@@ -7,6 +7,7 @@ version = "0.1.0"
 [dependencies]
 crossfont = "0.2.0"
 pixels = "0.2.0"
+ultraviolet = "0.7.5"
 winit = "0.24.0"
 
 [profile.dev]
