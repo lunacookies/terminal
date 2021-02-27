@@ -130,13 +130,12 @@ fn render_text(
         if c == ' ' {
             x += width_of_space as isize;
         } else {
-            render_character(
+            x += render_character(
                 c,
                 rasterizer,
                 font_key,
                 screen_pixel_buf,
-                Coordinate { x: 100, y: *y },
-                &mut x,
+                Coordinate { x, y: *y },
             );
         }
     }
@@ -156,8 +155,7 @@ fn render_character(
     font_key: crossfont::FontKey,
     screen_pixel_buf: &mut PixelBuf<Rgb>,
     character_pos: Coordinate,
-    x: &mut isize,
-) {
+) -> isize {
     let glyph = rasterizer
         .get_glyph(GlyphKey {
             character,
@@ -175,7 +173,7 @@ fn render_character(
     for (pixel, coordinate) in glyph_pixel_buf.pixels() {
         screen_pixel_buf.set_pixel(
             Coordinate {
-                x: *x + coordinate.x + character_pos.x + left,
+                x: coordinate.x + character_pos.x + left,
                 y: coordinate.y + character_pos.y - top,
             },
             Rgba {
@@ -187,7 +185,7 @@ fn render_character(
         );
     }
 
-    *x += (width + left) as isize;
+    width + left
 }
 
 fn calc_with_of_space(rasterizer: &mut Rasterizer, font_key: crossfont::FontKey) -> usize {
