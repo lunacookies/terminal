@@ -52,8 +52,8 @@ fn main() -> Result<(), Error> {
                     width_of_space,
                     &mut rasterizer,
                     font_key,
-                    pos,
                     &mut pixels,
+                    pos,
                     control_flow,
                 );
             }
@@ -94,8 +94,8 @@ fn redraw(
     width_of_space: usize,
     rasterizer: &mut Rasterizer,
     font_key: FontKey,
-    pos: Coordinate,
     pixels: &mut Pixels<winit::window::Window>,
+    pos: Coordinate,
     control_flow: &mut ControlFlow,
 ) {
     *frame_n += 1;
@@ -167,11 +167,11 @@ fn render_character(
 
     let glyph_pixel_buf = PixelBuf::from(glyph);
 
-    for (pixel, coordinate) in glyph_pixel_buf.pixels() {
+    for (pixel, pixel_pos) in glyph_pixel_buf.pixels() {
         screen_pixel_buf.set_pixel(
             Coordinate {
-                x: coordinate.x + character_pos.x + left,
-                y: coordinate.y + character_pos.y - top,
+                x: pixel_pos.x + character_pos.x + left,
+                y: pixel_pos.y + character_pos.y - top,
             },
             Rgba {
                 r: 255,
@@ -224,8 +224,8 @@ impl<P> PixelBuf<P> {
 }
 
 impl PixelBuf<Rgb> {
-    fn set_pixel(&mut self, coordinate: Coordinate, new_pixel: Rgba) {
-        if let Some(idx) = coordinate.to_idx(self.width, self.height) {
+    fn set_pixel(&mut self, pos: Coordinate, new_pixel: Rgba) {
+        if let Some(idx) = pos.to_idx(self.width, self.height) {
             self.pixels[idx] = self.pixels[idx].clone().blend(new_pixel);
         }
     }
