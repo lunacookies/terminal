@@ -40,7 +40,7 @@ fn main() -> Result<(), Error> {
         .unwrap();
 
     let width_of_space = calc_with_of_space(&mut rasterizer, font_key);
-    let mut y = 100;
+    let mut pos = Coordinate { x: 100, y: 100 };
 
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Wait;
@@ -52,7 +52,7 @@ fn main() -> Result<(), Error> {
                     width_of_space,
                     &mut rasterizer,
                     font_key,
-                    &mut y,
+                    pos,
                     &mut pixels,
                     control_flow,
                 );
@@ -60,10 +60,15 @@ fn main() -> Result<(), Error> {
             Event::WindowEvent { event, .. } => match event {
                 WindowEvent::MouseInput { .. } => window.request_redraw(),
                 WindowEvent::MouseWheel {
-                    delta: MouseScrollDelta::PixelDelta(PhysicalPosition { y: y_change, .. }),
+                    delta:
+                        MouseScrollDelta::PixelDelta(PhysicalPosition {
+                            x: x_change,
+                            y: y_change,
+                        }),
                     ..
                 } => {
-                    y += y_change as isize;
+                    pos.x -= x_change as isize;
+                    pos.y += y_change as isize;
                     window.request_redraw();
                 }
                 WindowEvent::KeyboardInput {
@@ -89,7 +94,7 @@ fn redraw(
     width_of_space: usize,
     rasterizer: &mut Rasterizer,
     font_key: FontKey,
-    y: &mut isize,
+    pos: Coordinate,
     pixels: &mut Pixels<winit::window::Window>,
     control_flow: &mut ControlFlow,
 ) {
@@ -104,7 +109,7 @@ fn redraw(
         rasterizer,
         font_key,
         &mut screen_pixel_buf,
-        y,
+        pos,
     );
 
     screen_pixel_buf.write_to_rgba_buffer(&mut pixels.get_frame());
@@ -122,21 +127,13 @@ fn render_text(
     rasterizer: &mut Rasterizer,
     font_key: FontKey,
     screen_pixel_buf: &mut PixelBuf<Rgb>,
-    y: &mut isize,
+    mut pos: Coordinate,
 ) {
-    let mut x = 100;
-
     for c in text.chars() {
         if c == ' ' {
-            x += width_of_space as isize;
+            pos.x += width_of_space as isize;
         } else {
-            x += render_character(
-                c,
-                rasterizer,
-                font_key,
-                screen_pixel_buf,
-                Coordinate { x, y: *y },
-            );
+            pos.x += render_character(c, rasterizer, font_key, screen_pixel_buf, pos);
         }
     }
 }
